@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Interativa de Cenários de R&S</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Corporate -->
+    <!-- Application Structure Plan: A dashboard-style, single-page application centered around interactive tabs. The user selects one of the three scenarios (Centralizado, Híbrido, Capacitação) via prominent buttons. This action dynamically updates a detailed content area, presenting the chosen scenario's attributes (pains, enablers, tasks, deliverables) in structured cards. This focused view prevents information overload. Crucially, a separate, always-visible section features a radar chart for a direct, multi-dimensional comparison of all scenarios. This structure was chosen to facilitate both in-depth analysis of individual models and a quick, high-level comparison, which is ideal for a decision-making audience like franchisees. The flow is: Intro -> Select Scenario -> Explore Details -> Analyze Comparative Chart -> Review Next Steps. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Three distinct R&S service models and their characteristics. Goal: Compare & Inform. Viz/Presentation: Interactive Tabs (HTML/JS) and Content Cards (HTML/Tailwind). Interaction: User clicks a tab to dynamically load the corresponding scenario's data into the cards. Justification: Allows users to focus on one model at a time without distraction, making complex information digestible.
+        2. Report Info: Comparative strengths and weaknesses (investment, control, autonomy). Goal: Compare. Viz/Presentation: Radar Chart (Chart.js/Canvas). Interaction: Hover tooltips provide specific data points. Justification: A radar chart is the most effective way to visualize trade-offs across multiple quantitative/qualitative dimensions for several items simultaneously, offering an instant, powerful summary.
+        3. Report Info: Overall process flow and key attributes. Goal: Organize & Inform. Viz/Presentation: Styled lists and icon-driven cards (HTML/Tailwind). Interaction: Static display. Justification: Clear and simple presentation for foundational information.
+        Method: Vanilla JS for state and DOM updates, Chart.js for visualization, and Tailwind CSS for styling. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        .nav-btn.active {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .nav-btn:not(.active) {
+            background-color: #ffffff;
+            color: #374151;
+        }
+        .flow-step {
+            border-left: 3px solid #d1d5db;
+        }
+        .flow-step:last-child {
+            border-left: 3px solid transparent;
+        }
+        .flow-dot {
+            background-color: #d1d5db;
+        }
+        .flow-step.owner-franchisee .flow-dot { background-color: #3b82f6; }
+        .flow-step.owner-franchisee { border-left-color: #3b82f6; }
+        .flow-step.owner-franchisor .flow-dot { background-color: #166534; }
+        .flow-step.owner-franchisor { border-left-color: #166534; }
+        .flow-step.owner-shared .flow-dot { background-color: #8b5cf6; }
+        .flow-step.owner-shared { border-left-color: #8b5cf6; }
+        
+        .sub-nav-btn {
+            border-color: transparent;
+            color: #6b7280;
+            transition: all 0.2s ease-in-out;
+        }
+        .sub-nav-btn:hover {
+            color: #1e3a8a;
+        }
+        .sub-nav-btn.active {
+            border-color: #1e3a8a;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Modelos Operacionais de Recrutamento & Seleção para a Rede de Franquias</h1>
+            <p class="mt-2 text-lg text-gray-600">Cenários comparativos para o início de um projeto de recrutamento e seleção na rede de franquias do GB.</p>
+        </header>
+        
+        <section id="unified-pains" class="mb-10">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Principais Dores da Rede</h2>
+                <p class="mt-2 text-md text-gray-600">Os desafios que esta iniciativa busca solucionar.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-5xl mx-auto">
+                <div class="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center h-full">
+                    <div class="w-16 h-1.5 rounded-full bg-red-500 mb-4"></div>
+                    <h3 class="font-semibold text-gray-800">Turnover no Varejo</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center h-full">
+                    <div class="w-16 h-1.5 rounded-full bg-blue-500 mb-4"></div>
+                    <h3 class="font-semibold text-gray-800">Dificuldade em Atrair Talentos</h3>
+                </div>
+                 <div class="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center h-full">
+                    <div class="w-16 h-1.5 rounded-full bg-yellow-500 mb-4"></div>
+                    <h3 class="font-semibold text-gray-800">Baixa Qualificação do Processo</h3>
+                </div>
+            </div>
+        </section>
+
+        <nav class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mb-10 max-w-4xl mx-auto">
+            <button id="btn-1" class="nav-btn text-base font-semibold py-3 px-6 rounded-lg shadow-sm flex-1">
+                Cenário 1: Centralizado
+            </button>
+            <button id="btn-2" class="nav-btn text-base font-semibold py-3 px-6 rounded-lg shadow-sm flex-1">
+                Cenário 2: Híbrido
+            </button>
+            <button id="btn-3" class="nav-btn text-base font-semibold py-3 px-6 rounded-lg shadow-sm flex-1">
+                Cenário 3: Capacitação
+            </button>
+        </nav>
+
+        <main id="content-area" class="space-y-12">
+            <section id="scenario-details" class="transition-opacity duration-500 ease-in-out bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div class="text-center mb-4">
+                    <h2 id="scenario-title" class="text-2xl font-bold text-blue-800"></h2>
+                    <p id="scenario-description" class="mt-2 text-md text-gray-600 max-w-3xl mx-auto"></p>
+                    <div id="scenario-note" class="mt-3"></div>
+                </div>
+
+                <div id="scenario-flow-container" class="mb-8">
+                     <h3 class="text-xl font-bold text-center text-gray-800 mb-6">Fluxo do Processo</h3>
+                     <div class="flex justify-center items-center gap-4 md:gap-6 text-sm mb-6 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded-full bg-green-700"></span>
+                            <span>Franqueadora</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                             <span class="w-4 h-4 rounded-full bg-blue-500"></span>
+                            <span>Franqueado</span>
+                        </div>
+                         <div id="legend-shared" class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded-full bg-purple-500"></span>
+                            <span class="text-left">Compartilhado <br class="hidden sm:block"/>(Ferramenta Franqueadora / Execução Franqueado)</span>
+                        </div>
+                    </div>
+                    <div id="scenario-flow" class="max-w-4xl mx-auto"></div>
+                </div>
+                
+                <hr class="my-8"/>
+
+                <div class="mt-8">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                            <button id="tab-enablers" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                🛠️ Habilitadores
+                            </button>
+                            <button id="tab-tasks" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                📋 Tarefas da Franqueadora
+                            </button>
+                            <button id="tab-deliverables" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                🎁 Entregáveis ao Franqueado
+                            </button>
+                        </nav>
+                    </div>
+                    <div class="pt-6">
+                        <ul id="scenario-details-content" class="list-disc list-inside space-y-2 text-gray-700"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="comparative-analysis" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Análise Comparativa</h2>
+                    <p class="mt-2 text-md text-gray-600">Visualize as principais diferenças entre os modelos para uma decisão informada.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scenario-chart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const scenarioData = {
+            1: {
+                title: "Modelo Centralizado (R&S como Serviço - RaaS)",
+                description: "Neste modelo, a franqueadora assume a maior parte do processo de atração e pré-seleção, entregando uma lista de candidatos qualificados (shortlist) para o franqueado realizar a entrevista final e a contratação.",
+                note: "RECOMENDADO",
+                noteType: "recommend",
+                flow: [
+                    { step: "1. Definição do Perfil Ideal", owner: "franchisor", tool: "Playbook de Recrutamento" },
+                    { step: "2. Divulgação da Vaga", owner: "franchisor", tool: "ATS / Portais de Emprego" },
+                    { step: "3. Captação de Candidatos", owner: "franchisor", tool: "Radancy / Captura de topo de funil" },
+                    { step: "4. Triagem de CVs", owner: "franchisor", tool: "ATS / Algoritmo de IA" },
+                    { step: "5. Assessment", owner: "franchisor", tool: "Mindsight/Kolab" },
+                    { step: "6. Entrevista com RH", owner: "franchisor", tool: "Videochamada" },
+                    { step: "7. Entrevista final com time da Franquia", owner: "franchisee", tool: "Presencial / Videochamada" },
+                    { step: "8. Contratação", owner: "franchisee", tool: "Sistema Interno" }
+                ],
+                enablers: ["Equipe de R&S dedicada na franqueadora.", "investimento em ferramentas para apoiar o franqueado (Ex: Novo contrato com mindsight / ATS / Kolab)", "definição do processo junto com a rede de franquias.", "Construção de um modelo e governança da cobrança pelo serviço."],
+                tasks: ["Gestão centralizada da divulgação de vagas.", "Triagem contínua de currículos.", "Aplicação e análise de assessments.", "Realização de primeira entrevista.", "Envio de shortlist com pareceres."],
+                deliverables: ["Shortlist de candidatos qualificados.", "Relatórios de assessment.", "Agenda de entrevistas finais.", "Dashboard com métricas."]
+            },
+            2: {
+                title: "Modelo Híbrido (Parceria Estratégica)",
+                description: "A franqueadora atua como um centro de excelência: define o padrão, fornece as ferramentas e o banco de talentos, mas o franqueado é o responsável por executar o processo de seleção.",
+                note: null,
+                noteType: null,
+                flow: [
+                    { step: "1. Definição do Perfil Ideal", owner: "franchisor", tool: "Playbook de Recrutamento" },
+                    { step: "2. Divulgação da Vaga", owner: "shared", tool: "ATS" },
+                    { step: "3. Captação de Candidatos", owner: "shared", tool: "Radancy / Captura de topo de funil" },
+                    { step: "4. Triagem de CVs", owner: "shared", tool: "ATS / Algoritmo de IA" },
+                    { step: "5. Assessment", owner: "shared", tool: "Mindsight/Kolab" },
+                    { step: "6. Entrevista com RH", owner: "franchisee", tool: "Videochamada" },
+                    { step: "7. Entrevista final com time da Franquia", owner: "franchisee", tool: "Presencial / Videochamada" },
+                    { step: "8. Contratação", owner: "franchisee", tool: "Sistema Interno" }
+                ],
+                enablers: ["Plataforma tecnológica (ATS) para a rede.", "Contratos 'guarda-chuva' com fornecedores.", "Equipe central focada em gestão e capacitação.", "Materiais de treinamento de alta qualidade."],
+                tasks: ["Implementar e configurar ATS.", "Negociar e integrar ferramentas.", "Construir e manter o 'playbook do perfil ideal'.", "Gerenciar o banco de talentos.", "Treinar os franqueados e gerentes."],
+                deliverables: ["Acesso a sistema ATS.", "Acesso ao banco de talentos unificado.", "Licenças de assessment a custo reduzido.", "'Playbook de Contratação' com guias.", "Treinamentos e workshops periódicos."]
+            },
+            3: {
+                title: "Modelo de Capacitação (Self-Service com Suporte)",
+                description: "Este é o modelo mais leve. A franqueadora foca em educar e equipar o franqueado com conhecimento e materiais, mas não fornece tecnologia ou execução direta.",
+                note: "Tentado em 2024 (Projeto FORMA)",
+                noteType: "info",
+                flow: [
+                    { step: "1. Definição do Perfil Ideal", owner: "franchisor", tool: "Portal do Franqueado / EAD" },
+                    { step: "2. Divulgação da Vaga", owner: "franchisee", tool: "Ferramentas Próprias" },
+                    { step: "3. Captação de Candidatos", owner: "franchisee", tool: "Ferramentas Próprias" },
+                    { step: "4. Triagem de CVs", owner: "franchisee", tool: "Ferramentas Próprias / Algoritmo de IA" },
+                    { step: "5. Assessment", owner: "franchisee", tool: "Ferramentas Próprias" },
+                    { step: "6. Entrevista com RH", owner: "franchisee", tool: "Ferramentas Próprias" },
+                    { step: "7. Entrevista final com time da Franquia", owner: "franchisee", tool: "Ferramentas Próprias" },
+                    { step: "8. Contratação", owner: "franchisee", tool: "Ferramentas Próprias" }
+                ],
+                enablers: ["Expertise interna para criar conteúdo.", "Plataforma de EAD ou portal do franqueado.", "Consultor de campo para tirar dúvidas."],
+                tasks: ["Desenvolver o guia do 'Perfil Ideal'.", "Criar um manual completo de R&S.", "Elaborar templates (descrições, roteiros).", "Indicar fornecedores de assessment.", "Gravar módulos de treinamento online."],
+                deliverables: ["Kit completo de R&S (documentos).", "Acesso a trilha de aprendizagem online.", "Webinars periódicos para troca de práticas.", "Canal de suporte para dúvidas."]
+            }
+        };
+
+        const buttons = { 1: document.getElementById('btn-1'), 2: document.getElementById('btn-2'), 3: document.getElementById('btn-3') };
+        const scenarioTitle = document.getElementById('scenario-title');
+        const scenarioDescription = document.getElementById('scenario-description');
+        const scenarioNote = document.getElementById('scenario-note');
+        const scenarioFlow = document.getElementById('scenario-flow');
+        const contentArea = document.getElementById('scenario-details');
+        const legendShared = document.getElementById('legend-shared');
+
+        const subTabs = {
+            enablers: document.getElementById('tab-enablers'),
+            tasks: document.getElementById('tab-tasks'),
+            deliverables: document.getElementById('tab-deliverables'),
+        };
+        const scenarioDetailsContent = document.getElementById('scenario-details-content');
+        
+        let currentScenarioId = 1;
+        let activeSubTab = 'enablers';
+
+        function updateListView(element, items) {
+            element.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+        }
+        
+        function updateFlowView(flowData) {
+            scenarioFlow.innerHTML = flowData.map(item => `
+                <div class="flow-step relative pl-8 pb-8 owner-${item.owner}">
+                    <div class="flow-dot absolute left-[-7.5px] top-1 w-4 h-4 rounded-full border-4 border-white"></div>
+                    <p class="font-bold text-gray-800">${item.step}</p>
+                    <p class="text-sm text-gray-500">Ferramenta: ${item.tool}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateScenarioSubView(type) {
+            activeSubTab = type;
+            const data = scenarioData[currentScenarioId][type];
+            updateListView(scenarioDetailsContent, data);
+            Object.values(subTabs).forEach(btn => btn.classList.remove('active'));
+            subTabs[type].classList.add('active');
+        }
+
+        function updateView(scenarioId) {
+            currentScenarioId = scenarioId;
+            const data = scenarioData[scenarioId];
+            contentArea.style.opacity = 0;
+            setTimeout(() => {
+                scenarioTitle.textContent = data.title;
+                scenarioDescription.textContent = data.description;
+                
+                if (data.note) {
+                    let noteClass = 'bg-yellow-200 text-yellow-800';
+                    if (data.noteType === 'recommend') {
+                        noteClass = 'bg-green-200 text-green-800';
+                    }
+                    scenarioNote.innerHTML = `<span class="${noteClass} text-sm font-semibold px-3 py-1 rounded-full">${data.note}</span>`;
+                } else {
+                    scenarioNote.innerHTML = '';
+                }
+
+                if (scenarioId === 2) {
+                    legendShared.style.display = 'flex';
+                } else {
+                    legendShared.style.display = 'none';
+                }
+
+                updateFlowView(data.flow);
+                
+                updateScenarioSubView('enablers');
+
+                Object.values(buttons).forEach(btn => btn.classList.remove('active'));
+                buttons[scenarioId].classList.add('active');
+                
+                contentArea.style.opacity = 1;
+            }, 300);
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('scenario-chart').getContext('2d');
+            const chartData = {
+                labels: ['Investimento', 'Controle Qualidade', 'Autonomia Franqueado', 'Complexidade Gestão', 'Velocidade Implementação', 'Retorno de Longo Prazo para o GB'],
+                datasets: [{
+                    label: 'Cenário 1: Centralizado',
+                    data: [3, 3, 1, 3, 1, 3],
+                    backgroundColor: 'rgba(29, 78, 216, 0.2)',
+                    borderColor: 'rgba(29, 78, 216, 1)',
+                    pointBackgroundColor: 'rgba(29, 78, 216, 1)',
+                }, {
+                    label: 'Cenário 2: Híbrido',
+                    data: [2, 2, 2, 2, 2, 2],
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+                }, {
+                    label: 'Cenário 3: Capacitação',
+                    data: [1, 1, 3, 1, 3, 1],
+                    backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                    borderColor: 'rgba(249, 115, 22, 1)',
+                    pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+                }]
+            };
+            const chartOptions = {
+                responsive: true, maintainAspectRatio: false,
+                scales: { r: { suggestedMin: 0, suggestedMax: 3.5, pointLabels: { font: { size: 12 } }, ticks: { stepSize: 1, display: false } } },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.parsed.r;
+                                let label = '';
+                                if (value === 1) label = 'Baixo/Lento';
+                                if (value === 2) label = 'Médio';
+                                if (value === 3) label = 'Alto/Rápido';
+                                return `${context.dataset.label.split(':')[0]}: ${label}`;
+                            }
+                        }
+                    },
+                    legend: { position: 'top' }
+                }
+            };
+            new Chart(ctx, { type: 'radar', data: chartData, options: chartOptions });
+        }
+        
+        window.onload = function() {
+            buttons[1].addEventListener('click', () => updateView(1));
+            buttons[2].addEventListener('click', () => updateView(2));
+            buttons[3].addEventListener('click', () => updateView(3));
+            
+            subTabs.enablers.addEventListener('click', () => updateScenarioSubView('enablers'));
+            subTabs.tasks.addEventListener('click', () => updateScenarioSubView('tasks'));
+            subTabs.deliverables.addEventListener('click', () => updateScenarioSubView('deliverables'));
+
+            updateView(1);
+            initChart();
+        };
+    </script>
+</body>
+</html>
+
+
