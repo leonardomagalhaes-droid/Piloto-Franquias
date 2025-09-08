@@ -76,6 +76,13 @@
             border-color: #1e3a8a;
             color: #1e3a8a;
         }
+        .roadmap-phase {
+            border-left: 3px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .roadmap-phase:hover {
+            border-left-color: #1e3a8a;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -151,7 +158,7 @@
 
                 <div class="mt-8">
                     <div class="border-b border-gray-200">
-                        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
                             <button id="tab-enablers" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                                 🛠️ Habilitadores
                             </button>
@@ -164,10 +171,19 @@
                         </nav>
                     </div>
                     <div class="pt-6">
-                        <ul id="scenario-details-content" class="list-disc list-inside space-y-2 text-gray-700"></ul>
+                        <div id="scenario-details-content" class="text-gray-700"></div>
                     </div>
                 </div>
             </section>
+            
+            <section id="roadmap-section" class="transition-opacity duration-500 ease-in-out bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Roadmap de Implementação</h2>
+                    <p class="mt-2 text-md text-gray-600">Plano de ação para o cenário selecionado.</p>
+                </div>
+                <div id="scenario-roadmap-content" class="text-gray-700 max-w-4xl mx-auto"></div>
+            </section>
+
 
             <section id="comparative-analysis" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
                 <div class="text-center mb-6">
@@ -200,7 +216,13 @@
                 ],
                 enablers: ["Equipe de R&S dedicada na franqueadora.", "investimento em ferramentas para apoiar o franqueado (Ex: Novo contrato com mindsight / ATS / Kolab)", "definição do processo junto com a rede de franquias.", "Construção de um modelo e governança da cobrança pelo serviço."],
                 tasks: ["Gestão centralizada da divulgação de vagas.", "Triagem contínua de currículos.", "Aplicação e análise de assessments.", "Realização de primeira entrevista.", "Envio de shortlist com pareceres."],
-                deliverables: ["Shortlist de candidatos qualificados.", "Relatórios de assessment.", "Agenda de entrevistas finais.", "Dashboard com métricas."]
+                deliverables: ["Shortlist de candidatos qualificados.", "Relatórios de assessment.", "Agenda de entrevistas finais.", "Dashboard com métricas."],
+                roadmap: [
+                    { phase: "Fase 1: Diagnóstico e Planejamento", timeframe: "Out - Dez 2025", activities: ["Mapeamento de processos de R&S atuais na rede.", "Estruturação da equipe interna de R&S.", "Definição do modelo de governança e cobrança.", "Seleção e contratação de ferramentas (ATS, Assessment)."] },
+                    { phase: "Fase 2: Estruturação e Piloto", timeframe: "Jan - Abr 2026", activities: ["Desenho detalhado dos SLAs e fluxos.", "Execução do projeto piloto com 05 franqueados."] },
+                    { phase: "Fase 3: Lançamento e Expansão", timeframe: "Mai - Dez 2026", activities: ["Ajustes com base no feedback do piloto.", "Lançamento oficial do serviço para toda a rede.", "Plano de comunicação e onboarding de novos franqueados.", "Incorporação da Mindsight no processo."] },
+                    { phase: "Fase 4: Melhoria Contínua", timeframe: "A partir de 2027", activities: ["Monitoramento de KPIs (turnover, tempo de vaga).", "Pesquisas de satisfação com franqueados.", "Atualização de ferramentas e processos."] },
+                ]
             },
             2: {
                 title: "Modelo Híbrido (Parceria Estratégica)",
@@ -219,7 +241,13 @@
                 ],
                 enablers: ["Plataforma tecnológica (ATS) para a rede.", "Contratos 'guarda-chuva' com fornecedores.", "Equipe central focada em gestão e capacitação.", "Materiais de treinamento de alta qualidade."],
                 tasks: ["Implementar e configurar ATS.", "Negociar e integrar ferramentas.", "Construir e manter o 'playbook do perfil ideal'.", "Gerenciar o banco de talentos.", "Treinar os franqueados e gerentes."],
-                deliverables: ["Acesso a sistema ATS.", "Acesso ao banco de talentos unificado.", "Licenças de assessment a custo reduzido.", "'Playbook de Contratação' com guias.", "Treinamentos e workshops periódicos."]
+                deliverables: ["Acesso a sistema ATS.", "Acesso ao banco de talentos unificado.", "Licenças de assessment a custo reduzido.", "'Playbook de Contratação' com guias.", "Treinamentos e workshops periódicos."],
+                roadmap: [
+                    { phase: "Fase 1: Diagnóstico e Planejamento", timeframe: "Out - Dez 2025", activities: ["Levantamento de necessidades de ferramentas junto aos franqueados.", "Negociação e seleção de fornecedores de tecnologia.", "Desenho do 'Playbook de Recrutamento'."] },
+                    { phase: "Fase 2: Estruturação e Piloto", timeframe: "Jan - Abr 2026", activities: ["Configuração e parametrização do ATS para a rede.", "Desenvolvimento dos materiais de treinamento.", "Projeto piloto com grupo de franqueados para testar ferramentas e fluxo."] },
+                    { phase: "Fase 3: Lançamento e Expansão", timeframe: "Mai - Dez 2026", activities: ["Rollout do acesso às ferramentas para toda a rede.", "Ciclo de treinamentos de capacitação (onboarding).", "Criação de comunidade de práticas entre os franqueados."] },
+                    { phase: "Fase 4: Melhoria Contínua", timeframe: "A partir de 2027", activities: ["Suporte contínuo no uso das ferramentas.", "Atualização do playbook e materiais de apoio.", "Análise de dados agregados para gerar insights para a rede."] },
+                ]
             },
             3: {
                 title: "Modelo de Capacitação (Self-Service com Suporte)",
@@ -238,7 +266,13 @@
                 ],
                 enablers: ["Expertise interna para criar conteúdo.", "Plataforma de EAD ou portal do franqueado.", "Consultor de campo para tirar dúvidas."],
                 tasks: ["Desenvolver o guia do 'Perfil Ideal'.", "Criar um manual completo de R&S.", "Elaborar templates (descrições, roteiros).", "Indicar fornecedores de assessment.", "Gravar módulos de treinamento online."],
-                deliverables: ["Kit completo de R&S (documentos).", "Acesso a trilha de aprendizagem online.", "Webinars periódicos para troca de práticas.", "Canal de suporte para dúvidas."]
+                deliverables: ["Kit completo de R&S (documentos).", "Acesso a trilha de aprendizagem online.", "Webinars periódicos para troca de práticas.", "Canal de suporte para dúvidas."],
+                roadmap: [
+                    { phase: "Fase 1: Diagnóstico e Planejamento", timeframe: "Out - Nov 2025", activities: ["Estruturação do conteúdo programático da capacitação.", "Definição dos formatos (vídeos, guias, templates).", "Validação do conteúdo com franqueados-chave."] },
+                    { phase: "Fase 2: Estruturação e Piloto", timeframe: "Dez 2025 - Fev 2026", activities: ["Produção dos materiais e gravação dos vídeos.", "Estruturação da área no Portal do Franqueado/EAD.", "Liberação do acesso para um grupo piloto para feedback."] },
+                    { phase: "Fase 3: Lançamento e Expansão", timeframe: "Mar - Abr 2026", activities: ["Lançamento oficial do portal de capacitação para toda a rede.", "Campanha de comunicação para engajamento.", "Primeiro ciclo de webinars ao vivo."] },
+                    { phase: "Fase 4: Melhoria Contínua", timeframe: "A partir de Mai 2026", activities: ["Atualização periódica dos materiais.", "Promoção de fóruns de troca de boas práticas.", "Coleta de feedback para novas pautas de conteúdo."] },
+                ]
             }
         };
 
@@ -249,6 +283,8 @@
         const scenarioFlow = document.getElementById('scenario-flow');
         const contentArea = document.getElementById('scenario-details');
         const legendShared = document.getElementById('legend-shared');
+        const scenarioRoadmapContent = document.getElementById('scenario-roadmap-content');
+        const roadmapSection = document.getElementById('roadmap-section');
 
         const subTabs = {
             enablers: document.getElementById('tab-enablers'),
@@ -261,7 +297,20 @@
         let activeSubTab = 'enablers';
 
         function updateListView(element, items) {
-            element.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+            element.innerHTML = `<ul class="list-disc list-inside space-y-2">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+        }
+        
+        function updateRoadmapView(element, roadmapData) {
+            element.innerHTML = roadmapData.map(phase => `
+                <div class="roadmap-phase relative pl-8 pb-6">
+                     <div class="flow-dot absolute left-[-7.5px] top-1.5 w-4 h-4 rounded-full bg-gray-300 border-4 border-white"></div>
+                     <p class="font-bold text-gray-800">${phase.phase}</p>
+                     <p class="text-sm font-medium text-gray-500 mb-2">${phase.timeframe}</p>
+                     <ul class="list-disc list-inside space-y-1 text-sm">
+                        ${phase.activities.map(act => `<li>${act}</li>`).join('')}
+                     </ul>
+                </div>
+            `).join('');
         }
         
         function updateFlowView(flowData) {
@@ -286,6 +335,8 @@
             currentScenarioId = scenarioId;
             const data = scenarioData[scenarioId];
             contentArea.style.opacity = 0;
+            roadmapSection.style.opacity = 0;
+
             setTimeout(() => {
                 scenarioTitle.textContent = data.title;
                 scenarioDescription.textContent = data.description;
@@ -307,13 +358,14 @@
                 }
 
                 updateFlowView(data.flow);
-                
+                updateRoadmapView(scenarioRoadmapContent, data.roadmap);
                 updateScenarioSubView('enablers');
 
                 Object.values(buttons).forEach(btn => btn.classList.remove('active'));
                 buttons[scenarioId].classList.add('active');
                 
                 contentArea.style.opacity = 1;
+                roadmapSection.style.opacity = 1;
             }, 300);
         }
 
@@ -371,12 +423,11 @@
             subTabs.enablers.addEventListener('click', () => updateScenarioSubView('enablers'));
             subTabs.tasks.addEventListener('click', () => updateScenarioSubView('tasks'));
             subTabs.deliverables.addEventListener('click', () => updateScenarioSubView('deliverables'));
-
+            
             updateView(1);
             initChart();
         };
     </script>
 </body>
 </html>
-
 
