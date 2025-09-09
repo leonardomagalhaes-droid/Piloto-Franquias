@@ -3,24 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Interativa de Cenários de R&S</title>
+    <title>Soluções de R&S para a rede de Franquias</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Corporate Brand Colors (Navy Blue, Blue, Salmon, Pink) -->
+    <!-- Application Structure Plan: A top-down SPA design starting with a strategic overview (Impacts & Pillars), followed by an interactive accordion for the 'Esteira de Soluções'. The core is an interactive section where users select one of three implementation scenarios, dynamically updating a detailed view (Process Flow, Details, Roadmap) and a comparative Radar Chart. This structure guides the user from the high-level 'why' to the detailed 'how', facilitating understanding and comparison, which is more intuitive than a static document. -->
+    <!-- Visualization & Content Choices: - Impact/Pillars: Goal: Inform -> Card layout (HTML/Tailwind) -> Interaction: None -> Justification: Breaks down core concepts visually. - Esteira de Soluções: Goal: Organize -> Accordion (HTML/JS) -> Interaction: Click to expand -> Justification: Manages dense information cleanly. - Scenarios: Goal: Compare/Organize -> Buttons + Dynamic Content (JS) -> Interaction: Click to switch views -> Justification: Allows direct, focused comparison of complex models. - Process Flow: Goal: Organize -> Vertical Timeline (HTML/CSS/JS) -> Interaction: Hover effects -> Justification: More visually engaging and easier to follow than a table. - Análise Comparativa: Goal: Compare -> Radar Chart (Chart.js/Canvas) -> Interaction: Highlighting on scenario selection -> Justification: Provides a multi-dimensional, at-a-glance comparison of qualitative metrics, which is more impactful than a table. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Calm Corporate -->
-    <!-- Application Structure Plan: A dashboard-style, single-page application centered around interactive tabs. The user selects one of the three scenarios (Centralizado, Híbrido, Capacitação) via prominent buttons. This action dynamically updates a detailed content area, presenting the chosen scenario's attributes (pains, enablers, tasks, deliverables) in structured cards. This focused view prevents information overload. Crucially, a separate, always-visible section features a radar chart for a direct, multi-dimensional comparison of all scenarios. This structure was chosen to facilitate both in-depth analysis of individual models and a quick, high-level comparison, which is ideal for a decision-making audience like franchisees. The flow is: Intro -> Select Scenario -> Explore Details -> Analyze Comparative Chart -> Review Next Steps. -->
-    <!-- Visualization & Content Choices: 
-        1. Report Info: Three distinct R&S service models and their characteristics. Goal: Compare & Inform. Viz/Presentation: Interactive Tabs (HTML/JS) and Content Cards (HTML/Tailwind). Interaction: User clicks a tab to dynamically load the corresponding scenario's data into the cards. Justification: Allows users to focus on one model at a time without distraction, making complex information digestible.
-        2. Report Info: Comparative strengths and weaknesses (investment, control, autonomy). Goal: Compare. Viz/Presentation: Radar Chart (Chart.js/Canvas). Interaction: Hover tooltips provide specific data points. Justification: A radar chart is the most effective way to visualize trade-offs across multiple quantitative/qualitative dimensions for several items simultaneously, offering an instant, powerful summary.
-        3. Report Info: Overall process flow and key attributes. Goal: Organize & Inform. Viz/Presentation: Styled lists and icon-driven cards (HTML/Tailwind). Interaction: Static display. Justification: Clear and simple presentation for foundational information.
-        Method: Vanilla JS for state and DOM updates, Chart.js for visualization, and Tailwind CSS for styling. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --brand-off-white: #F8F7F4;
+            --brand-navy-blue: #002B5B;
+            --brand-blue: #0057B8;
+            --brand-salmon: #F3A37A;
+            --brand-pink: #E63E96;
+            --brand-red: #C40F34;
+            --brand-dark-gray: #4a5568;
+            --brand-light-gray: #edf2f7;
+        }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: var(--brand-off-white);
+            color: var(--brand-dark-gray);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .active-scenario-btn {
+            background-color: var(--brand-navy-blue) !important;
+            color: white !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         .chart-container {
             position: relative;
@@ -28,406 +45,443 @@
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+            height: 350px;
+            max-height: 450px;
         }
         @media (min-width: 768px) {
             .chart-container {
                 height: 400px;
             }
         }
-        .nav-btn {
-            transition: all 0.3s ease;
+        .timeline { position: relative; }
+        .timeline:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 18px;
+            height: 100%;
+            width: 4px;
+            background: var(--brand-light-gray);
         }
-        .nav-btn.active {
-            background-color: #1e3a8a;
-            color: #ffffff;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        .nav-btn:not(.active) {
-            background-color: #ffffff;
-            color: #374151;
-        }
-        .flow-step {
-            border-left: 3px solid #d1d5db;
-        }
-        .flow-step:last-child {
-            border-left: 3px solid transparent;
-        }
-        .flow-dot {
-            background-color: #d1d5db;
-        }
-        .flow-step.owner-franchisee .flow-dot { background-color: #3b82f6; }
-        .flow-step.owner-franchisee { border-left-color: #3b82f6; }
-        .flow-step.owner-franchisor .flow-dot { background-color: #166534; }
-        .flow-step.owner-franchisor { border-left-color: #166534; }
-        .flow-step.owner-shared .flow-dot { background-color: #8b5cf6; }
-        .flow-step.owner-shared { border-left-color: #8b5cf6; }
-        
-        .sub-nav-btn {
-            border-color: transparent;
-            color: #6b7280;
-            transition: all 0.2s ease-in-out;
-        }
-        .sub-nav-btn:hover {
-            color: #1e3a8a;
-        }
-        .sub-nav-btn.active {
-            border-color: #1e3a8a;
-            color: #1e3a8a;
-        }
-        .roadmap-phase {
-            border-left: 3px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-        .roadmap-phase:hover {
-            border-left-color: #1e3a8a;
+        .timeline-item:after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid var(--brand-navy-blue);
+            z-index: 1;
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="bg-gray-50 text-gray-800">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+    <header class="bg-white shadow-sm py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <img src="https://logodownload.org/wp-content/uploads/2020/02/grupo-boticario-logo-5.png" alt="Grupo Boticário Logo" class="h-16 w-auto mx-auto mb-4">
+            <h1 class="text-4xl md:text-5xl font-bold" style="color: var(--brand-navy-blue);">Soluções de R&S para a rede de Franquias</h1>
+            <p class="mt-2 text-lg md:text-xl text-gray-600">Plataforma de Atração, Recrutamento & Seleção para a Rede de Franquias</p>
+        </div>
+    </header>
 
-        <header class="text-center mb-10">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Modelos Operacionais de Recrutamento & Seleção para a Rede de Franquias</h1>
-            <p class="mt-2 text-lg text-gray-600">Cenários comparativos para o início de um projeto de recrutamento e seleção na rede de franquias do GB.</p>
-        </header>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         
-        <section id="unified-pains" class="mb-10">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Principais Dores da Rede</h2>
-                <p class="mt-2 text-md text-gray-600">Os desafios que esta iniciativa busca solucionar.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-5xl mx-auto">
-                <div class="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center h-full">
-                    <div class="w-16 h-1.5 rounded-full bg-red-500 mb-4"></div>
-                    <h3 class="font-semibold text-gray-800">Turnover no Varejo</h3>
+        <section id="overview" class="mb-16">
+            <p class="text-center text-lg max-w-4xl mx-auto mb-10">Uma proposta de plataforma para fortalecer a rede de franqueados com soluções práticas e escaláveis, garantindo acesso democrático às melhores práticas e ferramentas do mercado com a curadoria e chancela do GB.</p>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4" style="color: var(--brand-blue);">Impacto Projetado</h2>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start"><span class="mr-3 mt-1" style="color: var(--brand-blue);">&#10004;</span> <span><strong>Impulsionar o GMV dos Franqueados:</strong> Ao contratar pessoas com maior potencial de performance em vendas.</span></li>
+                        <li class="flex items-start"><span class="mr-3 mt-1" style="color: var(--brand-blue);">&#10004;</span> <span><strong>Melhorar a Qualidade das Contratações:</strong> Padronizando o perfil e o processo de avaliação de candidatos.</span></li>
+                        <li class="flex items-start"><span class="mr-3 mt-1" style="color: var(--brand-blue);">&#10004;</span> <span><strong>Fortalecer a Marca Empregadora:</strong> Criando uma identidade de atração única e consistente em todo o Brasil.</span></li>
+                        <li class="flex items-start"><span class="mr-3 mt-1" style="color: var(--brand-blue);">&#10004;</span> <span><strong>Reduzir o Turnover:</strong> Aumentando a aderência dos contratados à cultura e aos desafios da função.</span></li>
+                        <li class="flex items-start"><span class="mr-3 mt-1" style="color: var(--brand-blue);">&#10004;</span> <span><strong>Impulsionar a Cultura GB na Ponta:</strong> Garantindo que cada novo colaborador seja um embaixador da nossa cultura.</span></li>
+                    </ul>
                 </div>
-                <div class="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center h-full">
-                    <div class="w-16 h-1.5 rounded-full bg-blue-500 mb-4"></div>
-                    <h3 class="font-semibold text-gray-800">Dificuldade em Atrair Talentos</h3>
-                </div>
-                 <div class="bg-white p-6 rounded-xl border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center h-full">
-                    <div class="w-16 h-1.5 rounded-full bg-yellow-500 mb-4"></div>
-                    <h3 class="font-semibold text-gray-800">Baixa Qualificação do Processo</h3>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4" style="color: var(--brand-blue);">Pilares Estratégicos da Solução</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-bold text-lg">1. Tecnologia Integrada</h3>
+                            <p class="text-gray-700">Estudar a viabilidade de uma tecnologia de suporte com estilo didático, gamificado e baseado em IA para escalar, padronizar e dar eficiência aos processos de R&S.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">2. Plataforma de Soluções</h3>
+                            <p class="text-gray-700">Criar um "cardápio" de serviços (Employer Branding, Assessment, etc.) operado por um parceiro, com franqueados pagando apenas pelos serviços utilizados.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">3. Governança & Central de Excelência GB</h3>
+                            <p class="text-gray-700">Estruturar a governança da relação, com Playbooks, definição do Perfil Ideal e acompanhamento de indicadores-chave de sucesso.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <nav class="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mb-10 max-w-4xl mx-auto">
-            <button id="btn-1" class="nav-btn text-base font-semibold py-3 px-6 rounded-lg shadow-sm flex-1">
-                Cenário 1: Centralizado
-            </button>
-            <button id="btn-2" class="nav-btn text-base font-semibold py-3 px-6 rounded-lg shadow-sm flex-1">
-                Cenário 2: Híbrido
-            </button>
-            <button id="btn-3" class="nav-btn text-base font-semibold py-3 px-6 rounded-lg shadow-sm flex-1">
-                Cenário 3: Capacitação
-            </button>
-        </nav>
+        <section id="solutions-conveyor" class="mb-16 bg-white p-8 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-center mb-8" style="color: var(--brand-navy-blue);">A Esteira de Soluções Detalhada</h2>
+            <div id="accordion-container" class="space-y-4 max-w-4xl mx-auto">
+            </div>
+        </section>
 
-        <main id="content-area" class="space-y-12">
-            <section id="scenario-details" class="transition-opacity duration-500 ease-in-out bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <div class="text-center mb-4">
-                    <h2 id="scenario-title" class="text-2xl font-bold text-blue-800"></h2>
-                    <p id="scenario-description" class="mt-2 text-md text-gray-600 max-w-3xl mx-auto"></p>
-                    <div id="scenario-note" class="mt-3"></div>
-                </div>
-
-                <div id="scenario-flow-container" class="mb-8">
-                     <h3 class="text-xl font-bold text-center text-gray-800 mb-6">Fluxo do Processo</h3>
-                     <div class="flex justify-center items-center gap-4 md:gap-6 text-sm mb-6 flex-wrap">
-                        <div class="flex items-center gap-2">
-                            <span class="w-4 h-4 rounded-full bg-green-700"></span>
-                            <span>Franqueadora</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                             <span class="w-4 h-4 rounded-full bg-blue-500"></span>
-                            <span>Franqueado</span>
-                        </div>
-                         <div id="legend-shared" class="flex items-center gap-2">
-                            <span class="w-4 h-4 rounded-full bg-purple-500"></span>
-                            <span class="text-left">Compartilhado <br class="hidden sm:block"/>(Ferramenta Franqueadora / Execução Franqueado)</span>
-                        </div>
-                    </div>
-                    <div id="scenario-flow" class="max-w-4xl mx-auto"></div>
-                </div>
-                
-                <hr class="my-8"/>
-
-                <div class="mt-8">
-                    <div class="border-b border-gray-200">
-                        <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
-                            <button id="tab-enablers" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                🛠️ Habilitadores
-                            </button>
-                            <button id="tab-tasks" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                📋 Tarefas da Franqueadora
-                            </button>
-                            <button id="tab-deliverables" class="sub-nav-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                🎁 Entregáveis ao Franqueado
-                            </button>
-                        </nav>
-                    </div>
-                    <div class="pt-6">
-                        <div id="scenario-details-content" class="text-gray-700"></div>
-                    </div>
-                </div>
-            </section>
+        <section id="implementation-models">
+            <h2 class="text-3xl font-bold text-center mb-8" style="color: var(--brand-navy-blue);">Modelos de Implementação (Cenários)</h2>
+            <p class="text-center text-lg max-w-4xl mx-auto mb-10">A seguir, apresentamos três cenários possíveis para a implementação da plataforma, que nos permitirão dimensionar o projeto e testar o apetite da rede.</p>
             
-            <section id="comparative-analysis" class="bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Análise Comparativa</h2>
-                    <p class="mt-2 text-md text-gray-600">Visualize as principais diferenças entre os modelos para uma decisão informada.</p>
-                </div>
-                <div class="chart-container">
-                    <canvas id="scenario-chart"></canvas>
-                </div>
-            </section>
-            
-            <section id="roadmap-section" class="transition-opacity duration-500 ease-in-out bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Roadmap de Implementação</h2>
-                    <p class="mt-2 text-md text-gray-600">Plano de ação para o cenário selecionado.</p>
-                </div>
-                <div id="scenario-roadmap-content" class="text-gray-700 max-w-4xl mx-auto"></div>
-            </section>
+            <div id="scenario-buttons" class="flex flex-wrap justify-center gap-4 mb-8">
+                <button data-scenario="1" class="scenario-btn text-lg py-3 px-6 rounded-lg font-semibold bg-white shadow-md hover:bg-gray-100 transition-all duration-300">Cenário 1: Centralizado</button>
+                <button data-scenario="2" class="scenario-btn text-lg py-3 px-6 rounded-lg font-semibold bg-white shadow-md hover:bg-gray-100 transition-all duration-300">Cenário 2: Híbrido</button>
+                <button data-scenario="3" class="scenario-btn text-lg py-3 px-6 rounded-lg font-semibold bg-white shadow-md hover:bg-gray-100 transition-all duration-300">Cenário 3: Capacitação</button>
+            </div>
 
-        </main>
-    </div>
+            <div id="scenario-content" class="bg-white p-8 rounded-lg shadow-lg min-h-[300px]">
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white mt-16 py-6 border-t">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <p>&copy; 2025 Grupo Boticário. Proposta de Projeto Interno.</p>
+        </div>
+    </footer>
 
     <script>
-        const scenarioData = {
-            1: {
-                title: "Modelo Centralizado (R&S como Serviço - RaaS)",
-                description: "Neste modelo, a franqueadora assume a maior parte do processo de atração e pré-seleção, entregando uma lista de candidatos qualificados (shortlist) para o franqueado realizar a entrevista final e a contratação.",
-                note: "RECOMENDADO",
-                noteType: "recommend",
-                flow: [
-                    { step: "1. Definição do Perfil Ideal", owner: "franchisor", tool: "Playbook de Recrutamento" },
-                    { step: "2. Divulgação da Vaga", owner: "franchisor", tool: "ATS / Portais de Emprego" },
-                    { step: "3. Captação de Candidatos", owner: "franchisor", tool: "Radancy / Captura de topo de funil" },
-                    { step: "4. Triagem de CVs", owner: "franchisor", tool: "ATS / Algoritmo de IA" },
-                    { step: "5. Assessment", owner: "franchisor", tool: "Mindsight/Kolab" },
-                    { step: "6. Entrevista com RH", owner: "franchisor", tool: "Videochamada" },
-                    { step: "7. Entrevista final com time da Franquia", owner: "franchisee", tool: "Presencial / Videochamada" },
-                    { step: "8. Contratação", owner: "franchisee", tool: "Sistema Interno" }
-                ],
-                enablers: ["Equipe de R&S dedicada na franqueadora.", "investimento em ferramentas para apoiar o franqueado (Ex: Novo contrato com mindsight / ATS / Kolab)", "definição do processo junto com a rede de franquias.", "Construção de um modelo e governança da cobrança pelo serviço."],
-                tasks: ["Gestão centralizada da divulgação de vagas.", "Triagem contínua de currículos.", "Aplicação e análise de assessments.", "Realização de primeira entrevista.", "Envio de shortlist com pareceres."],
-                deliverables: ["Shortlist de candidatos qualificados.", "Relatórios de assessment.", "Agenda de entrevistas finais.", "Dashboard com métricas."],
-                roadmap: [
-                    { phase: "Fase 1: Diagnóstico e Planejamento", timeframe: "Out - Dez 2025", activities: ["Mapeamento de processos de R&S atuais na rede.", "Estruturação da equipe interna de R&S.", "Definição do modelo de governança e cobrança.", "Seleção e contratação de ferramentas (ATS, Assessment)."] },
-                    { phase: "Fase 2: Estruturação e Piloto", timeframe: "Jan - Abr 2026", activities: ["Desenho detalhado dos SLAs e fluxos.", "Execução do projeto piloto com 05 franqueados."] },
-                    { phase: "Fase 3: Lançamento e Expansão", timeframe: "Mai - Dez 2026", activities: ["Ajustes com base no feedback do piloto.", "Lançamento oficial do serviço para toda a rede.", "Plano de comunicação e onboarding de novos franqueados.", "Incorporação da Mindsight no processo."] },
-                    { phase: "Fase 4: Melhoria Contínua", timeframe: "A partir de 2027", activities: ["Monitoramento de KPIs (turnover, tempo de vaga).", "Pesquisas de satisfação com franqueados.", "Atualização de ferramentas e processos."] },
-                ]
+        const projectData = {
+            solutionsConveyor: [
+                {
+                    title: "1. Atração de Talentos",
+                    objective: "Garantir o alcance dos melhores perfis, nas diferentes regiões, alinhados à cultura e ao Perfil Ideal.",
+                    services: ["ATS com multiposting", "Padronização de anúncios e biblioteca de ativos", "Página de Carreiras do GB", "Ações integradas a campanhas nacionais", "Programa 'Boomerang' (CRM)", "Agência para marketing de recrutamento on-demand."]
+                },
+                {
+                    title: "2. Recrutamento",
+                    objective: "Reduzir o tempo de contratação, melhorar a experiência do candidato e garantir maior acuracidade na identificação de talentos.",
+                    services: ["Triagem inteligente com IA ou chatbot", "Banco de talentos compartilhado", "Plataforma de entrevistas remotas", "'Talent Acquisition as a Service' para demandas complexas."]
+                },
+                {
+                    title: "3. Seleção",
+                    objective: "Elevar a qualidade da contratação, potencializando as vendas e reduzindo o turnover.",
+                    services: ["Kit de Seleção Eficiente (Guias e roteiros)", "Scorecard digital com match automático", "Avaliação psicométrica", "Checklists de documentação online", "Teste de entrevistas com IA (AI Interview)."]
+                },
+                {
+                    title: "4. Retenção",
+                    objective: "Acompanhar os indicadores de sucesso e reduzir o turnover nos primeiros 6 meses.",
+                    services: ["Dashboard de turnover", "Diagnóstico das causas de saídas", "Acompanhamento trimestral de indicadores (NPS, etc.)."]
+                }
+            ],
+            scenarios: {
+                "1": {
+                    title: "Cenário 1: Centralizado (R&S como Serviço - RaaS)",
+                    tag: '<span class="ml-4 inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">RECOMENDADO</span>',
+                    description: "Neste modelo, a franqueadora assume a maior parte do processo de atração e pré-seleção, entregando uma lista de candidatos qualificados (shortlist) para o franqueado realizar a entrevista final e a contratação.",
+                    processFlow: {
+                        rows: [
+                            { etapa: "1. Definição do Perfil Ideal", responsavel: "Franqueadora", ferramenta: "Playbook de Recrutamento" },
+                            { etapa: "2. Divulgação da Vaga", responsavel: "Franqueadora", ferramenta: "ATS / Portais de Emprego" },
+                            { etapa: "3. Captação de Candidatos", responsavel: "Franqueadora", ferramenta: "Radancy / Captura de topo de funil" },
+                            { etapa: "4. Triagem de CVs", responsavel: "Franqueadora", ferramenta: "ATS / Algoritmo de IA" },
+                            { etapa: "5. Assessment", responsavel: "Franqueadora", ferramenta: "Mindsight/Kolab" },
+                            { etapa: "6. Entrevista com RH", responsavel: "Franqueadora", ferramenta: "Videochamada" },
+                            { etapa: "7. Entrevista final", responsavel: "Franqueado", ferramenta: "Presencial / Videochamada" },
+                            { etapa: "8. Contratação", responsavel: "Franqueado", ferramenta: "Sistema Interno" }
+                        ],
+                        legend: { "Franqueadora": "bg-blue-800", "Franqueado": "bg-yellow-500", "Compartilhado": "bg-pink-500" }
+                    },
+                    details: [
+                        { name: "Habilitadores", content: ["Equipe de R&S dedicada na franqueadora.", "Investimento em ferramentas (Mindsight, ATS, Kolab).", "Definição do processo junto com a rede.", "Construção de um modelo de governança da cobrança."] },
+                        { name: "Tarefas da Franqueadora", content: ["Gestão centralizada da divulgação de vagas.", "Triagem contínua de currículos.", "Aplicação e análise de assessments.", "Realização de primeira entrevista.", "Envio de shortlist com pareceres."] },
+                        { name: "Entregáveis ao Franqueado", content: ["Shortlist de candidatos qualificados.", "Relatórios de assessment.", "Agenda de entrevistas finais.", "Dashboard com métricas."] }
+                    ],
+                    roadmap: [
+                         { phase: "Fase 1: Diagnóstico e Planejamento", timeline: "Out - Dez 2025", items: ["Mapeamento de processos atuais.", "Estruturação da equipe interna de R&S.", "Definição do modelo de governança e cobrança.", "Seleção e contratação de ferramentas."] },
+                         { phase: "Fase 2: Estruturação e Piloto", timeline: "Jan - Abr 2026", items: ["Desenho detalhado dos SLAs e fluxos.", "Execução do projeto piloto com 05 franqueados."] },
+                         { phase: "Fase 3: Lançamento e Expansão", timeline: "Mai - Dez 2026", items: ["Ajustes com base no feedback.", "Lançamento oficial para toda a rede.", "Plano de comunicação e onboarding.", "Incorporação da Mindsight no processo."] },
+                         { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de 2027", items: ["Monitoramento de KPIs (turnover, tempo de vaga).", "Pesquisas de satisfação.", "Atualização de ferramentas e processos."] }
+                    ]
+                },
+                "2": {
+                    title: "Cenário 2: Híbrido (Parceria Estratégica)",
+                    tag: '',
+                    description: "A franqueadora atua como um centro de excelência: define o padrão, fornece as ferramentas e o banco de talentos, mas o franqueado é o responsável por executar o processo de seleção.",
+                    processFlow: {
+                        rows: [
+                             { etapa: "1. Definição do Perfil Ideal", responsavel: "Franqueadora", ferramenta: "Playbook de Recrutamento" },
+                             { etapa: "2. Divulgação da Vaga", responsavel: "Compartilhado", ferramenta: "ATS" },
+                             { etapa: "3. Captação de Candidatos", responsavel: "Compartilhado", ferramenta: "Radancy / Captura de topo de funil" },
+                             { etapa: "4. Triagem de CVs", responsavel: "Compartilhado", ferramenta: "ATS / Algoritmo de IA" },
+                             { etapa: "5. Assessment", responsavel: "Compartilhado", ferramenta: "Mindsight/Kolab" },
+                             { etapa: "6. Entrevista com RH", responsavel: "Franqueado", ferramenta: "Videochamada" },
+                             { etapa: "7. Entrevista final", responsavel: "Franqueado", ferramenta: "Presencial / Videochamada" },
+                             { etapa: "8. Contratação", responsavel: "Franqueado", ferramenta: "Sistema Interno" }
+                        ],
+                        legend: { "Franqueadora": "bg-blue-800", "Franqueado": "bg-yellow-500", "Compartilhado": "bg-pink-500" }
+                    },
+                    details: [
+                         { name: "Habilitadores", content: ["Plataforma tecnológica (ATS) para a rede.", "Contratos 'guarda-chuva' com fornecedores.", "Equipe central focada em gestão e capacitação.", "Materiais de treinamento de alta qualidade."] },
+                         { name: "Tarefas da Franqueadora", content: ["Implementar e configurar ATS.", "Negociar e integrar ferramentas.", "Construir e manter o 'playbook do perfil ideal'.", "Gerenciar o banco de talentos.", "Treinar os franqueados e gerentes."] },
+                         { name: "Entregáveis ao Franqueado", content: ["Acesso a sistema ATS.", "Acesso ao banco de talentos unificado.", "Licenças de assessment a custo reduzido.", "'Playbook de Contratação' com guias.", "Treinamentos e workshops periódicos."] }
+                    ],
+                    roadmap: [
+                         { phase: "Fase 1: Diagnóstico e Planejamento", timeline: "Out - Dez 2025", items: ["Levantamento de necessidades de ferramentas.", "Negociação e seleção de fornecedores.", "Desenho do 'Playbook de Recrutamento'."] },
+                         { phase: "Fase 2: Estruturação e Piloto", timeline: "Jan - Abr 2026", items: ["Configuração e parametrização do ATS.", "Desenvolvimento dos materiais de treinamento.", "Projeto piloto com grupo de franqueados."] },
+                         { phase: "Fase 3: Lançamento e Expansão", timeline: "Mai - Dez 2026", items: ["Rollout do acesso às ferramentas.", "Ciclo de treinamentos de capacitação (onboarding).", "Criação de comunidade de práticas."] },
+                         { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de 2027", items: ["Suporte contínuo no uso das ferramentas.", "Atualização do playbook e materiais.", "Análise de dados agregados para gerar insights."] }
+                    ]
+                },
+                "3": {
+                    title: "Cenário 3: Capacitação (Self-Service com Suporte)",
+                    tag: '<span class="ml-4 inline-block bg-yellow-100 text-yellow-800 text-sm font-semibold px-3 py-1 rounded-full">Tentado em 2024 (Projeto FORMA)</span>',
+                    description: "Este é o modelo mais leve. A franqueadora foca em educar e equipar o franqueado com conhecimento e materiais, mas não fornece tecnologia ou execução direta.",
+                    processFlow: {
+                        rows: [
+                            { etapa: "1. Definição do Perfil Ideal", responsavel: "Franqueadora", ferramenta: "Portal do Franqueado / EAD" },
+                            { etapa: "2. Divulgação da Vaga", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias" },
+                            { etapa: "3. Captação de Candidatos", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias" },
+                            { etapa: "4. Triagem de CVs", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias / Algoritmo de IA" },
+                            { etapa: "5. Assessment", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias" },
+                            { etapa: "6. Entrevista com RH", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias" },
+                            { etapa: "7. Entrevista final", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias" },
+                            { etapa: "8. Contratação", responsavel: "Franqueado", ferramenta: "Ferramentas Próprias" }
+                        ],
+                        legend: { "Franqueadora": "bg-blue-800", "Franqueado": "bg-yellow-500" }
+                    },
+                    details: [
+                        { name: "Habilitadores", content: ["Expertise interna para criar conteúdo.", "Plataforma de EAD ou portal do franqueado.", "Consultor de campo para tirar dúvidas."] },
+                        { name: "Tarefas da Franqueadora", content: ["Desenvolver o guia do 'Perfil Ideal'.", "Criar um manual completo de R&S.", "Elaborar templates (descrições, roteiros).", "Indicar fornecedores de assessment.", "Gravar módulos de treinamento online."] },
+                        { name: "Entregáveis ao Franqueado", content: ["Kit completo de R&S (documentos).", "Acesso a trilha de aprendizagem online.", "Webinars periódicos para troca de práticas.", "Canal de suporte para dúvidas."] }
+                    ],
+                    roadmap: [
+                        { phase: "Fase 1: Diagnóstico e Planejamento", timeline: "Out - Nov 2025", items: ["Estruturação do conteúdo programático.", "Definição dos formatos (vídeos, guias).", "Validação do conteúdo com franqueados-chave."] },
+                        { phase: "Fase 2: Estruturação e Piloto", timeline: "Dez 2025 - Fev 2026", items: ["Produção dos materiais e vídeos.", "Estruturação da área no Portal do Franqueado/EAD.", "Liberação do acesso para grupo piloto."] },
+                        { phase: "Fase 3: Lançamento e Expansão", timeline: "Mar - Abr 2026", items: ["Lançamento oficial do portal de capacitação.", "Campanha de comunicação para engajamento.", "Primeiro ciclo de webinars ao vivo."] },
+                        { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de Mai 2026", items: ["Atualização periódica dos materiais.", "Promoção de fóruns de troca de boas práticas.", "Coleta de feedback para novas pautas."] }
+                    ]
+                }
             },
-            2: {
-                title: "Modelo Híbrido (Parceria Estratégica)",
-                description: "A franqueadora atua como um centro de excelência: define o padrão, fornece as ferramentas e o banco de talentos, mas o franqueado é o responsável por executar o processo de seleção.",
-                note: null,
-                noteType: null,
-                flow: [
-                    { step: "1. Definição do Perfil Ideal", owner: "franchisor", tool: "Playbook de Recrutamento" },
-                    { step: "2. Divulgação da Vaga", owner: "shared", tool: "ATS" },
-                    { step: "3. Captação de Candidatos", owner: "shared", tool: "Radancy / Captura de topo de funil" },
-                    { step: "4. Triagem de CVs", owner: "shared", tool: "ATS / Algoritmo de IA" },
-                    { step: "5. Assessment", owner: "shared", tool: "Mindsight/Kolab" },
-                    { step: "6. Entrevista com RH", owner: "franchisee", tool: "Videochamada" },
-                    { step: "7. Entrevista final com time da Franquia", owner: "franchisee", tool: "Presencial / Videochamada" },
-                    { step: "8. Contratação", owner: "franchisee", tool: "Sistema Interno" }
-                ],
-                enablers: ["Plataforma tecnológica (ATS) para a rede.", "Contratos 'guarda-chuva' com fornecedores.", "Equipe central focada em gestão e capacitação.", "Materiais de treinamento de alta qualidade."],
-                tasks: ["Implementar e configurar ATS.", "Negociar e integrar ferramentas.", "Construir e manter o 'playbook do perfil ideal'.", "Gerenciar o banco de talentos.", "Treinar os franqueados e gerentes."],
-                deliverables: ["Acesso a sistema ATS.", "Acesso ao banco de talentos unificado.", "Licenças de assessment a custo reduzido.", "'Playbook de Contratação' com guias.", "Treinamentos e workshops periódicos."],
-                roadmap: [
-                    { phase: "Fase 1: Diagnóstico e Planejamento", timeframe: "Out - Dez 2025", activities: ["Levantamento de necessidades de ferramentas junto aos franqueados.", "Negociação e seleção de fornecedores de tecnologia.", "Desenho do 'Playbook de Recrutamento'."] },
-                    { phase: "Fase 2: Estruturação e Piloto", timeframe: "Jan - Abr 2026", activities: ["Configuração e parametrização do ATS para a rede.", "Desenvolvimento dos materiais de treinamento.", "Projeto piloto com grupo de franqueados para testar ferramentas e fluxo."] },
-                    { phase: "Fase 3: Lançamento e Expansão", timeframe: "Mai - Dez 2026", activities: ["Rollout do acesso às ferramentas para toda a rede.", "Ciclo de treinamentos de capacitação (onboarding).", "Criação de comunidade de práticas entre os franqueados."] },
-                    { phase: "Fase 4: Melhoria Contínua", timeframe: "A partir de 2027", activities: ["Suporte contínuo no uso das ferramentas.", "Atualização do playbook e materiais de apoio.", "Análise de dados agregados para gerar insights para a rede."] },
-                ]
-            },
-            3: {
-                title: "Modelo de Capacitação (Self-Service com Suporte)",
-                description: "Este é o modelo mais leve. A franqueadora foca em educar e equipar o franqueado com conhecimento e materiais, mas não fornece tecnologia ou execução direta.",
-                note: "Tentado em 2024 (Projeto FORMA)",
-                noteType: "info",
-                flow: [
-                    { step: "1. Definição do Perfil Ideal", owner: "franchisor", tool: "Portal do Franqueado / EAD" },
-                    { step: "2. Divulgação da Vaga", owner: "franchisee", tool: "Ferramentas Próprias" },
-                    { step: "3. Captação de Candidatos", owner: "franchisee", tool: "Ferramentas Próprias" },
-                    { step: "4. Triagem de CVs", owner: "franchisee", tool: "Ferramentas Próprias / Algoritmo de IA" },
-                    { step: "5. Assessment", owner: "franchisee", tool: "Ferramentas Próprias" },
-                    { step: "6. Entrevista com RH", owner: "franchisee", tool: "Ferramentas Próprias" },
-                    { step: "7. Entrevista final com time da Franquia", owner: "franchisee", tool: "Ferramentas Próprias" },
-                    { step: "8. Contratação", owner: "franchisee", tool: "Ferramentas Próprias" }
-                ],
-                enablers: ["Expertise interna para criar conteúdo.", "Plataforma de EAD ou portal do franqueado.", "Consultor de campo para tirar dúvidas."],
-                tasks: ["Desenvolver o guia do 'Perfil Ideal'.", "Criar um manual completo de R&S.", "Elaborar templates (descrições, roteiros).", "Indicar fornecedores de assessment.", "Gravar módulos de treinamento online."],
-                deliverables: ["Kit completo de R&S (documentos).", "Acesso a trilha de aprendizagem online.", "Webinars periódicos para troca de práticas.", "Canal de suporte para dúvidas."],
-                roadmap: [
-                    { phase: "Fase 1: Diagnóstico e Planejamento", timeframe: "Out - Nov 2025", activities: ["Estruturação do conteúdo programático da capacitação.", "Definição dos formatos (vídeos, guias, templates).", "Validação do conteúdo com franqueados-chave."] },
-                    { phase: "Fase 2: Estruturação e Piloto", timeframe: "Dez 2025 - Fev 2026", activities: ["Produção dos materiais e gravação dos vídeos.", "Estruturação da área no Portal do Franqueado/EAD.", "Liberação do acesso para um grupo piloto para feedback."] },
-                    { phase: "Fase 3: Lançamento e Expansão", timeframe: "Mar - Abr 2026", activities: ["Lançamento oficial do portal de capacitação para toda a rede.", "Campanha de comunicação para engajamento.", "Primeiro ciclo de webinars ao vivo."] },
-                    { phase: "Fase 4: Melhoria Contínua", timeframe: "A partir de Mai 2026", activities: ["Atualização periódica dos materiais.", "Promoção de fóruns de troca de boas práticas.", "Coleta de feedback para novas pautas de conteúdo."] },
+            comparisonChart: {
+                labels: ['Investimento', 'Controle de Qualidade', 'Autonomia do Franqueado', 'Complexidade de Gestão', 'Velocidade de Implementação', 'Retorno de Longo Prazo para o GB'],
+                datasets: [
+                    { label: 'Cenário 1: Centralizado', data: [5, 5, 1, 5, 1, 5], borderColor: 'rgba(0, 43, 91, 1)', backgroundColor: 'rgba(0, 43, 91, 0.2)' },
+                    { label: 'Cenário 2: Híbrido', data: [3, 3, 3, 3, 3, 3], borderColor: 'rgba(230, 62, 150, 1)', backgroundColor: 'rgba(230, 62, 150, 0.2)' },
+                    { label: 'Cenário 3: Capacitação', data: [1, 1, 5, 1, 5, 1], borderColor: 'rgba(243, 163, 122, 1)', backgroundColor: 'rgba(243, 163, 122, 0.2)' }
                 ]
             }
         };
 
-        const buttons = { 1: document.getElementById('btn-1'), 2: document.getElementById('btn-2'), 3: document.getElementById('btn-3') };
-        const scenarioTitle = document.getElementById('scenario-title');
-        const scenarioDescription = document.getElementById('scenario-description');
-        const scenarioNote = document.getElementById('scenario-note');
-        const scenarioFlow = document.getElementById('scenario-flow');
-        const contentArea = document.getElementById('scenario-details');
-        const legendShared = document.getElementById('legend-shared');
-        const scenarioRoadmapContent = document.getElementById('scenario-roadmap-content');
-        const roadmapSection = document.getElementById('roadmap-section');
+        document.addEventListener('DOMContentLoaded', () => {
+            const accordionContainer = document.getElementById('accordion-container');
+            const scenarioButtons = document.querySelectorAll('.scenario-btn');
+            const scenarioContent = document.getElementById('scenario-content');
+            let comparisonChart;
 
-        const subTabs = {
-            enablers: document.getElementById('tab-enablers'),
-            tasks: document.getElementById('tab-tasks'),
-            deliverables: document.getElementById('tab-deliverables'),
-        };
-        const scenarioDetailsContent = document.getElementById('scenario-details-content');
-        
-        let currentScenarioId = 1;
-        let activeSubTab = 'enablers';
+            function buildAccordion() {
+                projectData.solutionsConveyor.forEach((item) => {
+                    const accordionItem = document.createElement('div');
+                    accordionItem.className = 'border rounded-lg overflow-hidden bg-white';
 
-        function updateListView(element, items) {
-            element.innerHTML = `<ul class="list-disc list-inside space-y-2">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
-        }
-        
-        function updateRoadmapView(element, roadmapData) {
-            element.innerHTML = roadmapData.map(phase => `
-                <div class="roadmap-phase relative pl-8 pb-6">
-                     <div class="flow-dot absolute left-[-7.5px] top-1.5 w-4 h-4 rounded-full bg-gray-300 border-4 border-white"></div>
-                     <p class="font-bold text-gray-800">${phase.phase}</p>
-                     <p class="text-sm font-medium text-gray-500 mb-2">${phase.timeframe}</p>
-                     <ul class="list-disc list-inside space-y-1 text-sm">
-                        ${phase.activities.map(act => `<li>${act}</li>`).join('')}
-                     </ul>
-                </div>
-            `).join('');
-        }
-        
-        function updateFlowView(flowData) {
-            scenarioFlow.innerHTML = flowData.map(item => `
-                <div class="flow-step relative pl-8 pb-8 owner-${item.owner}">
-                    <div class="flow-dot absolute left-[-7.5px] top-1 w-4 h-4 rounded-full border-4 border-white"></div>
-                    <p class="font-bold text-gray-800">${item.step}</p>
-                    <p class="text-sm text-gray-500">Ferramenta: ${item.tool}</p>
-                </div>
-            `).join('');
-        }
+                    const button = document.createElement('button');
+                    button.className = 'w-full text-left p-4 font-semibold text-lg flex justify-between items-center transition hover:bg-gray-50';
+                    button.innerHTML = `<span>${item.title}</span><span class="transform transition-transform duration-300">&#9662;</span>`;
+                    
+                    const content = document.createElement('div');
+                    content.className = 'accordion-content';
+                    content.innerHTML = `
+                        <div class="p-4 border-t border-gray-200">
+                            <p class="font-semibold mb-2" style="color: var(--brand-blue);">${item.objective}</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                ${item.services.map(service => `<li>${service}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
 
-        function updateScenarioSubView(type) {
-            activeSubTab = type;
-            const data = scenarioData[currentScenarioId][type];
-            updateListView(scenarioDetailsContent, data);
-            Object.values(subTabs).forEach(btn => btn.classList.remove('active'));
-            subTabs[type].classList.add('active');
-        }
+                    accordionItem.appendChild(button);
+                    accordionItem.appendChild(content);
+                    accordionContainer.appendChild(accordionItem);
 
-        function updateView(scenarioId) {
-            currentScenarioId = scenarioId;
-            const data = scenarioData[scenarioId];
-            contentArea.style.opacity = 0;
-            roadmapSection.style.opacity = 0;
+                    button.addEventListener('click', () => {
+                        const isExpanded = content.style.maxHeight;
+                        document.querySelectorAll('.accordion-content').forEach(el => el.style.maxHeight = null);
+                        document.querySelectorAll('.accordion-content').forEach(el => el.previousElementSibling.lastChild.style.transform = 'rotate(0deg)');
 
-            setTimeout(() => {
-                scenarioTitle.textContent = data.title;
-                scenarioDescription.textContent = data.description;
-                
-                if (data.note) {
-                    let noteClass = 'bg-yellow-200 text-yellow-800';
-                    if (data.noteType === 'recommend') {
-                        noteClass = 'bg-green-200 text-green-800';
+                        if (!isExpanded) {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            button.lastChild.style.transform = 'rotate(180deg)';
+                        }
+                    });
+                });
+            }
+            
+            function createLegend(legendData) {
+                 let legendHtml = `<div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm">`;
+                 const legendMap = {
+                    "Franqueadora": "var(--brand-navy-blue)",
+                    "Franqueado": "var(--brand-salmon)",
+                    "Compartilhado": "var(--brand-pink)"
+                 };
+
+                 for (const key in legendData) {
+                    if (legendMap[key]) {
+                        legendHtml += `<div class="flex items-center"><span class="w-4 h-4 rounded-full mr-2" style="background-color: ${legendMap[key]}"></span><span>${key}</span></div>`;
                     }
-                    scenarioNote.innerHTML = `<span class="${noteClass} text-sm font-semibold px-3 py-1 rounded-full">${data.note}</span>`;
-                } else {
-                    scenarioNote.innerHTML = '';
-                }
+                 }
+                 legendHtml += '</div>';
+                 return legendHtml;
+            }
 
-                if (scenarioId === 2) {
-                    legendShared.style.display = 'flex';
-                } else {
-                    legendShared.style.display = 'none';
-                }
-
-                updateFlowView(data.flow);
-                updateRoadmapView(scenarioRoadmapContent, data.roadmap);
-                updateScenarioSubView('enablers');
-
-                Object.values(buttons).forEach(btn => btn.classList.remove('active'));
-                buttons[scenarioId].classList.add('active');
+            function updateScenarioContent(scenarioId) {
+                const data = projectData.scenarios[scenarioId];
+                if (!data) return;
                 
-                contentArea.style.opacity = 1;
-                roadmapSection.style.opacity = 1;
-            }, 300);
-        }
+                let processFlowHtml = `<div class="timeline">`;
+                data.processFlow.rows.forEach(row => {
+                    const colorMap = {
+                        "Franqueadora": "var(--brand-navy-blue)",
+                        "Franqueado": "var(--brand-salmon)",
+                        "Compartilhado": "var(--brand-pink)"
+                    };
+                    const bgColor = colorMap[row.responsavel] || 'gray';
+                    
+                    processFlowHtml += `
+                        <div class="timeline-item relative pl-12 pb-8">
+                            <h5 class="font-bold text-md">${row.etapa}</h5>
+                            <div class="flex items-center text-sm my-1">
+                                <span class="text-white text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full" style="background-color:${bgColor};">${row.responsavel}</span>
+                            </div>
+                            <p class="text-sm text-gray-500"><span class="font-semibold">Ferramentas:</span> ${row.ferramenta}</p>
+                        </div>
+                    `;
+                });
+                processFlowHtml += '</div>';
+                
+                let detailsHtml = `
+                    <div class="grid md:grid-cols-3 gap-6 mt-8">
+                        ${data.details.map(d => `
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-lg mb-2" style="color: var(--brand-blue);">${d.name}</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                    ${d.content.map(c => `<li>${c}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
 
-        function initChart() {
-            const ctx = document.getElementById('scenario-chart').getContext('2d');
-            const chartData = {
-                labels: ['Investimento', 'Controle Qualidade', 'Autonomia Franqueado', 'Complexidade Gestão', 'Velocidade Implementação', 'Retorno de Longo Prazo para o GB'],
-                datasets: [{
-                    label: 'Cenário 1: Centralizado',
-                    data: [3, 3, 1, 3, 1, 3],
-                    backgroundColor: 'rgba(29, 78, 216, 0.2)',
-                    borderColor: 'rgba(29, 78, 216, 1)',
-                    pointBackgroundColor: 'rgba(29, 78, 216, 1)',
-                }, {
-                    label: 'Cenário 2: Híbrido',
-                    data: [2, 2, 2, 2, 2, 2],
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderColor: 'rgba(34, 197, 94, 1)',
-                    pointBackgroundColor: 'rgba(34, 197, 94, 1)',
-                }, {
-                    label: 'Cenário 3: Capacitação',
-                    data: [1, 1, 3, 1, 3, 1],
-                    backgroundColor: 'rgba(249, 115, 22, 0.2)',
-                    borderColor: 'rgba(249, 115, 22, 1)',
-                    pointBackgroundColor: 'rgba(249, 115, 22, 1)',
-                }]
-            };
-            const chartOptions = {
-                responsive: true, maintainAspectRatio: false,
-                scales: { r: { suggestedMin: 0, suggestedMax: 3.5, pointLabels: { font: { size: 12 } }, ticks: { stepSize: 1, display: false } } },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let value = context.parsed.r;
-                                let label = '';
-                                if (value === 1) label = 'Baixo/Lento';
-                                if (value === 2) label = 'Médio';
-                                if (value === 3) label = 'Alto/Rápido';
-                                return `${context.dataset.label.split(':')[0]}: ${label}`;
+                let roadmapHtml = data.roadmap.map(phase => `
+                    <div class="md:flex items-start py-4">
+                        <div class="md:w-1/4 mb-2 md:mb-0">
+                            <h4 class="font-bold" style="color: var(--brand-blue);">${phase.phase}</h4>
+                            <p class="text-sm text-gray-500">${phase.timeline}</p>
+                        </div>
+                        <div class="md:w-3/4 md:pl-6 border-t md:border-t-0 md:border-l border-gray-200">
+                            <ul class="list-disc list-inside space-y-2 pt-4 md:pt-0">
+                                ${phase.items.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `).join('<hr class="my-4 border-gray-200">');
+
+                scenarioContent.innerHTML = `
+                    <h3 class="text-2xl font-bold text-center mb-2">${data.title} ${data.tag}</h3>
+                    <p class="text-center text-lg max-w-3xl mx-auto mb-8">${data.description}</p>
+                    
+                    <div class="mb-12">
+                        <h4 class="text-xl font-semibold mb-4" style="color: var(--brand-navy-blue);">Fluxo do Processo</h4>
+                        ${processFlowHtml}
+                    </div>
+                    
+                    <div class="mb-12">
+                        <h4 class="text-xl font-semibold mb-4" style="color: var(--brand-navy-blue);">Detalhes do Cenário</h4>
+                        ${detailsHtml}
+                    </div>
+                    
+                    <div class="mb-12">
+                        <h4 class="text-xl font-semibold mb-4" style="color: var(--brand-navy-blue);">Análise Comparativa</h4>
+                        <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xl font-semibold mb-4" style="color: var(--brand-navy-blue);">Roadmap de Implementação</h4>
+                        <div class="space-y-4">${roadmapHtml}</div>
+                    </div>
+                `;
+
+                updateChart(scenarioId);
+            }
+
+            function updateChart(selectedScenarioId) {
+                if (comparisonChart) {
+                    comparisonChart.destroy();
+                }
+
+                const ctx = document.getElementById('comparisonChart').getContext('2d');
+                const chartData = projectData.comparisonChart;
+
+                comparisonChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: chartData.datasets.map((ds, index) => ({
+                            ...ds,
+                            borderWidth: (index + 1).toString() === selectedScenarioId ? 3 : 1.5,
+                            pointRadius: (index + 1).toString() === selectedScenarioId ? 4 : 2.5,
+                            pointBackgroundColor: (index + 1).toString() === selectedScenarioId ? ds.borderColor : 'white',
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 5,
+                                min: 0,
+                                ticks: {
+                                    stepSize: 1,
+                                    display: false
+                                },
+                                pointLabels: {
+                                    font: {
+                                        size: 13
+                                    }
+                                },
+                                grid: { color: 'rgba(0,0,0,0.05)' },
+                                angleLines: { color: 'rgba(0,0,0,0.05)' }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
                             }
                         }
-                    },
-                    legend: { position: 'top' }
-                }
-            };
-            new Chart(ctx, { type: 'radar', data: chartData, options: chartOptions });
-        }
-        
-        window.onload = function() {
-            buttons[1].addEventListener('click', () => updateView(1));
-            buttons[2].addEventListener('click', () => updateView(2));
-            buttons[3].addEventListener('click', () => updateView(3));
+                    }
+                });
+            }
+
+            scenarioButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const scenarioId = button.dataset.scenario;
+                    scenarioButtons.forEach(btn => btn.classList.remove('active-scenario-btn'));
+                    button.classList.add('active-scenario-btn');
+                    updateScenarioContent(scenarioId);
+                });
+            });
             
-            subTabs.enablers.addEventListener('click', () => updateScenarioSubView('enablers'));
-            subTabs.tasks.addEventListener('click', () => updateScenarioSubView('tasks'));
-            subTabs.deliverables.addEventListener('click', () => updateScenarioSubView('deliverables'));
-            
-            updateView(1);
-            initChart();
-        };
+            buildAccordion();
+            scenarioButtons[0].click();
+        });
+
     </script>
 </body>
 </html>
+
+
 
