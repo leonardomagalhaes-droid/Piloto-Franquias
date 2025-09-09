@@ -6,7 +6,7 @@
     <title>Soluções de R&S para a rede de Franquias</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chosen Palette: Corporate Brand Colors (Navy Blue, Blue, Salmon, Pink) -->
+    <!-- Chosen Palette: Corporate Brand Colors (Navy Blue, Blue, Salmon, Pink, Off-White) -->
     <!-- Application Structure Plan: A top-down SPA design starting with a strategic overview (Impacts & Pillars), followed by an interactive accordion for the 'Esteira de Soluções'. The core is an interactive section where users select one of three implementation scenarios, dynamically updating a detailed view (Process Flow, Details, Roadmap) and a comparative Radar Chart. This structure guides the user from the high-level 'why' to the detailed 'how', facilitating understanding and comparison, which is more intuitive than a static document. -->
     <!-- Visualization & Content Choices: - Impact/Pillars: Goal: Inform -> Card layout (HTML/Tailwind) -> Interaction: None -> Justification: Breaks down core concepts visually. - Esteira de Soluções: Goal: Organize -> Accordion (HTML/JS) -> Interaction: Click to expand -> Justification: Manages dense information cleanly. - Scenarios: Goal: Compare/Organize -> Buttons + Dynamic Content (JS) -> Interaction: Click to switch views -> Justification: Allows direct, focused comparison of complex models. - Process Flow: Goal: Organize -> Vertical Timeline (HTML/CSS/JS) -> Interaction: Hover effects -> Justification: More visually engaging and easier to follow than a table. - Análise Comparativa: Goal: Compare -> Radar Chart (Chart.js/Canvas) -> Interaction: Highlighting on scenario selection -> Justification: Provides a multi-dimensional, at-a-glance comparison of qualitative metrics, which is more impactful than a table. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
@@ -81,7 +81,6 @@
 
     <header class="bg-white shadow-sm py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            
             <h1 class="text-4xl md:text-5xl font-bold" style="color: var(--brand-navy-blue);">Soluções de R&S para a rede de Franquias</h1>
             <p class="mt-2 text-lg md:text-xl text-gray-600">Plataforma de Atração, Recrutamento & Seleção para a Rede de Franquias</p>
         </div>
@@ -200,9 +199,9 @@
                         { name: "Entregáveis ao Franqueado", content: ["Shortlist de candidatos qualificados.", "Relatórios de assessment.", "Agenda de entrevistas finais.", "Dashboard com métricas."] }
                     ],
                     roadmap: [
-                         { phase: "Fase 1: Diagnóstico e Planejamento", timeline: "Out - Dez 2025", items: ["Mapeamento de processos atuais.", "Estruturação da equipe interna de R&S.", "Definição do modelo de governança e cobrança.", "Seleção e contratação de ferramentas."] },
-                         { phase: "Fase 2: Estruturação e Piloto", timeline: "Jan - Abr 2026", items: ["Desenho detalhado dos SLAs e fluxos.", "Execução do projeto piloto com 05 franqueados."] },
-                         { phase: "Fase 3: Lançamento e Expansão", timeline: "Mai - Dez 2026", items: ["Ajustes com base no feedback.", "Lançamento oficial para toda a rede.", "Plano de comunicação e onboarding.", "Incorporação da Mindsight no processo."] },
+                         { phase: "Fase 1: Planejamento", timeline: "Set - Out 2025", items: ["Mapeamento de processos atuais.", "Estruturação da equipe interna de R&S.", "Definição do modelo de governança e cobrança.", "Seleção de ferramentas."] },
+                         { phase: "Fase 2: Piloto", timeline: "Nov 2025 - Fev 2026", items: ["Desenho detalhado dos SLAs e fluxos.", "Execução do projeto piloto com 05 franqueados."] },
+                         { phase: "Fase 3: Expansão", timeline: "A partir de Mar 2026", items: ["Ajustes com base no feedback.", "Lançamento oficial para toda a rede.", "Plano de comunicação e onboarding.", "Incorporação da Mindsight no processo."] },
                          { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de 2027", items: ["Monitoramento de KPIs (turnover, tempo de vaga).", "Pesquisas de satisfação.", "Atualização de ferramentas e processos."] }
                     ]
                 },
@@ -229,9 +228,9 @@
                          { name: "Entregáveis ao Franqueado", content: ["Acesso a sistema ATS.", "Acesso ao banco de talentos unificado.", "Licenças de assessment a custo reduzido.", "'Playbook de Contratação' com guias.", "Treinamentos e workshops periódicos."] }
                     ],
                     roadmap: [
-                         { phase: "Fase 1: Diagnóstico e Planejamento", timeline: "Out - Dez 2025", items: ["Levantamento de necessidades de ferramentas.", "Negociação e seleção de fornecedores.", "Desenho do 'Playbook de Recrutamento'."] },
-                         { phase: "Fase 2: Estruturação e Piloto", timeline: "Jan - Abr 2026", items: ["Configuração e parametrização do ATS.", "Desenvolvimento dos materiais de treinamento.", "Projeto piloto com grupo de franqueados."] },
-                         { phase: "Fase 3: Lançamento e Expansão", timeline: "Mai - Dez 2026", items: ["Rollout do acesso às ferramentas.", "Ciclo de treinamentos de capacitação (onboarding).", "Criação de comunidade de práticas."] },
+                         { phase: "Fase 1: Planejamento", timeline: "Set - Out 2025", items: ["Levantamento de necessidades de ferramentas.", "Negociação com fornecedores.", "Desenho do 'Playbook de Recrutamento'."] },
+                         { phase: "Fase 2: Piloto", timeline: "Nov 2025 - Fev 2026", items: ["Configuração e parametrização do ATS.", "Desenvolvimento dos materiais de treinamento.", "Projeto piloto com grupo de franqueados."] },
+                         { phase: "Fase 3: Expansão", timeline: "A partir de Mar 2026", items: ["Rollout do acesso às ferramentas.", "Ciclo de treinamentos de capacitação (onboarding).", "Criação de comunidade de práticas."] },
                          { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de 2027", items: ["Suporte contínuo no uso das ferramentas.", "Atualização do playbook e materiais.", "Análise de dados agregados para gerar insights."] }
                     ]
                 },
@@ -258,10 +257,10 @@
                         { name: "Entregáveis ao Franqueado", content: ["Kit completo de R&S (documentos).", "Acesso a trilha de aprendizagem online.", "Webinars periódicos para troca de práticas.", "Canal de suporte para dúvidas."] }
                     ],
                     roadmap: [
-                        { phase: "Fase 1: Diagnóstico e Planejamento", timeline: "Out - Nov 2025", items: ["Estruturação do conteúdo programático.", "Definição dos formatos (vídeos, guias).", "Validação do conteúdo com franqueados-chave."] },
-                        { phase: "Fase 2: Estruturação e Piloto", timeline: "Dez 2025 - Fev 2026", items: ["Produção dos materiais e vídeos.", "Estruturação da área no Portal do Franqueado/EAD.", "Liberação do acesso para grupo piloto."] },
-                        { phase: "Fase 3: Lançamento e Expansão", timeline: "Mar - Abr 2026", items: ["Lançamento oficial do portal de capacitação.", "Campanha de comunicação para engajamento.", "Primeiro ciclo de webinars ao vivo."] },
-                        { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de Mai 2026", items: ["Atualização periódica dos materiais.", "Promoção de fóruns de troca de boas práticas.", "Coleta de feedback para novas pautas."] }
+                         { phase: "Fase 1: Planejamento", timeline: "Set - Out 2025", items: ["Estruturação do conteúdo programático.", "Definição dos formatos.", "Validação do conteúdo com franqueados-chave."] },
+                         { phase: "Fase 2: Piloto", timeline: "Nov 2025 - Fev 2026", items: ["Produção dos materiais e vídeos.", "Estruturação da área no Portal do Franqueado/EAD.", "Liberação do acesso para grupo piloto."] },
+                         { phase: "Fase 3: Expansão", timeline: "A partir de Mar 2026", items: ["Lançamento oficial do portal de capacitação.", "Campanha de comunicação para engajamento.", "Primeiro ciclo de webinars ao vivo."] },
+                         { phase: "Fase 4: Melhoria Contínua", timeline: "A partir de 2027", items: ["Atualização periódica dos materiais.", "Promoção de fóruns de troca de boas práticas.", "Coleta de feedback para novas pautas."] }
                     ]
                 }
             },
@@ -482,7 +481,3 @@
     </script>
 </body>
 </html>
-
-
-
-
